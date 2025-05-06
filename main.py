@@ -1,11 +1,21 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
 import shutil
 import os
 from convert_doc import adicionar_cabecalho_com_logo_e_numero_pagina
 
 app = FastAPI()
+
+# Habilita CORS para permitir requisições do Bubble
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Ou especifique: ["https://info-57154.bubbleapps.io"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/generate-docx/")
 async def generate_docx(
