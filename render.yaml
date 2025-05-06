@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: api-docx
+    env: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /docs
+    autoDeploy: true
