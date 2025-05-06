@@ -80,8 +80,8 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
     doc.save(output_path)
     return output_path
 
-input_file = r"C:\Users\davio\OneDrive\Área de Trabalho\Inmodocs\documento_teste.docx"
-output_file = r"C:\Users\davio\OneDrive\Área de Trabalho\Inmodocs\documento_formatado.docx"
-logo = "https://marketplace.canva.com/EAGCJB7pN-g/1/0/1600w/canva-logo-profissional-moderna-cinza-e-branca-para-construtoras-fZN73w5PnEY.jpg"
+#input_file = r"C:\Users\davio\OneDrive\Área de Trabalho\Inmodocs\documento_teste.docx"
+#output_file = r"C:\Users\davio\OneDrive\Área de Trabalho\Inmodocs\documento_formatado.docx"
+#logo = "https://marketplace.canva.com/EAGCJB7pN-g/1/0/1600w/canva-logo-profissional-moderna-cinza-e-branca-para-construtoras-fZN73w5PnEY.jpg"
 
-adicionar_cabecalho_com_logo_e_numero_pagina(input_file, output_file, logo)
+#adicionar_cabecalho_com_logo_e_numero_pagina(input_file, output_file, logo)
