@@ -3,5 +3,3 @@ uvicorn[standard]
 python-docx
 requests
 python-multipart
-docx2pdf
-pdf2docx

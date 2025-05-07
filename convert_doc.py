@@ -1,12 +1,11 @@
 import os
 import requests
+import subprocess
 from io import BytesIO
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx2pdf import convert as docx_to_pdf
-from pdf2docx import Converter
 
 def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_url):
     doc = Document(input_path)
@@ -14,6 +13,8 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
     for section in doc.sections:
         section.header_distance = Inches(0.8)
         header = section.header
+
+        # Tabela no cabeçalho
         table = header.add_table(rows=1, cols=2, width=Inches(6.27))
         table.autofit = False
 
@@ -31,7 +32,7 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
         cell_logo = row.cells[0]
         cell_page = row.cells[1]
 
-        # Insere logo
+        # Logo
         if logo_url:
             try:
                 if logo_url.startswith("//"):
@@ -40,21 +41,19 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
                 image_stream = BytesIO(response.content)
                 paragraph_logo = cell_logo.paragraphs[0]
                 run_logo = paragraph_logo.add_run()
-                run_logo.add_picture(image_stream, height=Inches(0.61))
+                run_logo.add_picture(image_stream, height=Inches(0.61))  # ~1,55 cm
             except Exception as e:
                 print(f"Erro ao carregar logo: {e}")
 
-        # Numeração de página
+        # Numeração da página
         paragraph_page = cell_page.paragraphs[0]
-        paragraph_page.alignment = 2  # Direita
+        paragraph_page.alignment = 2  # Right
         run_page = paragraph_page.add_run()
 
         fldChar1 = OxmlElement('w:fldChar')
         fldChar1.set(qn('w:fldCharType'), 'begin')
-
         instrText = OxmlElement('w:instrText')
         instrText.text = 'PAGE'
-
         fldChar2 = OxmlElement('w:fldChar')
         fldChar2.set(qn('w:fldCharType'), 'end')
 
@@ -63,31 +62,36 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
         run_page._r.append(fldChar2)
 
         # Remove rodapé
-        for para in section.footer.paragraphs:
+        footer = section.footer
+        for para in footer.paragraphs:
             p = para._element
             p.getparent().remove(p)
 
-    # Insere espaçamento após o cabeçalho
+    # Inserir parágrafo espaçador
     if doc.paragraphs:
         spacer = doc.paragraphs[0].insert_paragraph_before()
         spacer.paragraph_format.space_before = Pt(18)
         spacer.paragraph_format.space_after = Pt(18)
         spacer.add_run("")
 
-    # Salva DOCX temporário com cabeçalho
+    # Salva com cabeçalho
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     doc.save(output_path)
 
-    # Caminhos auxiliares
-    pdf_path = output_path.replace(".docx", ".pdf")
-    final_docx_path = output_path.replace(".docx", "_final.docx")
-
     # Converte para PDF
-    docx_to_pdf(output_path, pdf_path)
+    pdf_path = output_path.replace(".docx", ".pdf")
+    subprocess.run([
+        'libreoffice', '--headless', '--convert-to', 'pdf',
+        '--outdir', os.path.dirname(pdf_path),
+        output_path
+    ], check=True)
 
-    # Converte PDF para novo DOCX compatível com Google Docs
-    converter = Converter(pdf_path)
-    converter.convert(final_docx_path, start=0, end=None)
-    converter.close()
+    # Converte de volta para DOCX
+    final_docx = output_path.replace(".docx", "_final.docx")
+    subprocess.run([
+        'libreoffice', '--headless', '--convert-to', 'docx',
+        '--outdir', os.path.dirname(final_docx),
+        pdf_path
+    ], check=True)
 
-    return final_docx_path
+    return final_docx
