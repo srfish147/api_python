@@ -32,8 +32,8 @@ async def generate_docx(
     output_path = input_path.replace(".docx", f"_{contract_name}.docx")
 
     # Chama a função de conversão passando os parâmetros
-    adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_url)
-
+    #adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_url)
+    shutil.copyfile(input_path, output_path)
 
     # Remove o arquivo temporário de entrada
     os.remove(input_path)
