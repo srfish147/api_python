@@ -32,12 +32,7 @@ async def generate_docx(
     output_path = input_path.replace(".docx", f"_{contract_name}.docx")
 
     # Chama a função de conversão passando os parâmetros
-    #adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_url)
-    try:
-        final_path = adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_url)
-    except Exception as e:
-        print(f"[ERRO] Falha ao gerar o DOCX com cabeçalho: {e}")
-        return {"error": "Erro interno ao processar o documento"}
+    adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_url)
 
 
     # Remove o arquivo temporário de entrada
@@ -45,7 +40,7 @@ async def generate_docx(
 
     # Retorna o novo arquivo como resposta
     return FileResponse(
-        final_path,
+        output_path,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         filename=f"{contract_name}.docx"
     )

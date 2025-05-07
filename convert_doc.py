@@ -1,6 +1,5 @@
 import os
 import requests
-import subprocess
 from io import BytesIO
 from docx import Document
 from docx.shared import Inches, Pt
@@ -11,7 +10,9 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
     doc = Document(input_path)
 
     for section in doc.sections:
+        # Espaço entre cabeçalho e texto principal (ajustável)
         section.header_distance = Inches(0.8)
+
         header = section.header
 
         # Tabela no cabeçalho
@@ -32,28 +33,28 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
         cell_logo = row.cells[0]
         cell_page = row.cells[1]
 
-        # Logo
+        # Logo à esquerda
         if logo_url:
             try:
-                if logo_url.startswith("//"):
-                    logo_url = "https:" + logo_url
                 response = requests.get(logo_url)
                 image_stream = BytesIO(response.content)
                 paragraph_logo = cell_logo.paragraphs[0]
                 run_logo = paragraph_logo.add_run()
-                run_logo.add_picture(image_stream, height=Inches(0.61))  # ~1,55 cm
+                run_logo.add_picture(image_stream, height=Inches(0.61))  # 1,55 cm
             except Exception as e:
                 print(f"Erro ao carregar logo: {e}")
 
-        # Numeração da página
+        # Numeração da página à direita
         paragraph_page = cell_page.paragraphs[0]
         paragraph_page.alignment = 2  # Right
         run_page = paragraph_page.add_run()
 
         fldChar1 = OxmlElement('w:fldChar')
         fldChar1.set(qn('w:fldCharType'), 'begin')
+
         instrText = OxmlElement('w:instrText')
         instrText.text = 'PAGE'
+
         fldChar2 = OxmlElement('w:fldChar')
         fldChar2.set(qn('w:fldCharType'), 'end')
 
@@ -61,37 +62,20 @@ def adicionar_cabecalho_com_logo_e_numero_pagina(input_path, output_path, logo_u
         run_page._r.append(instrText)
         run_page._r.append(fldChar2)
 
-        # Remove rodapé
+        # ❌ Remove rodapé
         footer = section.footer
         for para in footer.paragraphs:
             p = para._element
             p.getparent().remove(p)
 
-    # Inserir parágrafo espaçador
+    # ↕ Insere parágrafo em branco com espaçamento após cabeçalho
     if doc.paragraphs:
         spacer = doc.paragraphs[0].insert_paragraph_before()
         spacer.paragraph_format.space_before = Pt(18)
         spacer.paragraph_format.space_after = Pt(18)
-        spacer.add_run("")
+        spacer.add_run("")  # apenas força o espaço visual
 
-    # Salva com cabeçalho
+    # Salva
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     doc.save(output_path)
-
-    # Converte para PDF
-    pdf_path = output_path.replace(".docx", ".pdf")
-    subprocess.run([
-        'libreoffice', '--headless', '--convert-to', 'pdf',
-        '--outdir', os.path.dirname(pdf_path),
-        output_path
-    ], check=True)
-
-    # Converte de volta para DOCX
-    final_docx = output_path.replace(".docx", "_final.docx")
-    subprocess.run([
-        'libreoffice', '--headless', '--convert-to', 'docx',
-        '--outdir', os.path.dirname(final_docx),
-        pdf_path
-    ], check=True)
-
-    return final_docx
+    return output_path
